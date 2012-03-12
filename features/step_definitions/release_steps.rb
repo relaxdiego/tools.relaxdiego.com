@@ -46,9 +46,13 @@ end
 
 Then /^the commit message should be:$/ do |expected_msg|
   commit_msg = ''
-  run("git log -1").split(/\n\n/)[1].each_line do
-    |l| commit_msg << l.gsub(/^[ ]+/, "").gsub(/(?<=-- )(\w)+/, "(hash)")
+  divider_length = 0
+  run("git log -1").split(/\n\n/)[1].each_line do |l|
+    divider_length = l.strip.length if l.match('Update version')
+    commit_msg << l.gsub(/^[ ]+/, "").gsub(/(?<=-- )(\w)+/, "(hash)")
   end
+  expected_msg.gsub!(/(----.+\n)/, '-' * divider_length + "\n")
+
   commit_msg.strip.should == expected_msg.strip
 end
 
@@ -57,10 +61,8 @@ Then /^'(.+)' should be tagged in the repo$/ do |version_string|
   raise "Tag '#{version_string}' could not be found in the repo" if $? != 0
 end
 
-Then /^the version\.yml file should contain:$/ do |version|
-  expected_version = version.hashes[0]
-  saved_version = YAML.load_stream(run('cat version.yml'))[0]
-  expected_version.each_key do |key|
-    saved_version[key].to_s.should == expected_version[key]
-  end
+Then /^the version\.yml file should contain '(.+)'$/ do |version_string|
+  ver = YAML.load_stream(run('cat version.yml'))[0]
+  saved_version = "v#{ ver['major'] }.#{ ver['minor'] }.#{ ver['patch'] }-#{ ver['pre-release'] }"
+  saved_version.should == version_string
 end
