@@ -1,0 +1,5 @@
+#!/usr/bin/env ruby
+case ARGV.delete_at(0)
+when 'release'
+  `rdt-release #{ARGV.join(' ')}`
+end
