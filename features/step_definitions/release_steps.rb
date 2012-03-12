@@ -56,3 +56,11 @@ Then /^'(.+)' should be tagged in the repo$/ do |version_string|
   run "git show #{version_string} 2>/dev/null"
   raise "Tag '#{version_string}' could not be found in the repo" if $? != 0
 end
+
+Then /^the version\.yml file should contain:$/ do |version|
+  expected_version = version.hashes[0]
+  saved_version = YAML.load_stream(run('cat version.yml'))[0]
+  expected_version.each_key do |key|
+    saved_version[key].to_s.should == expected_version[key]
+  end
+end
